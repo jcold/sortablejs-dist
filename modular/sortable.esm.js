@@ -479,10 +479,13 @@ function getParentAutoScrollElement(el, includeSelf) {
   var elem = el;
   var gotSelf = false;
   do {
+    if (elem.classList && elem.classList.contains('cmp-scroll-view')){
+      // debugger
+    }
     // we don't need to get elem css if it isn't even overflowing in the first place (performance)
     if (elem.clientWidth < elem.scrollWidth || elem.clientHeight < elem.scrollHeight) {
       var elemCSS = css(elem);
-      if (elem.clientWidth < elem.scrollWidth && (elemCSS.overflowX == 'auto' || elemCSS.overflowX == 'scroll') || elem.clientHeight < elem.scrollHeight && (elemCSS.overflowY == 'auto' || elemCSS.overflowY == 'scroll')) {
+      if (elem.clientWidth < elem.scrollWidth && ((elem.classList && elem.classList.contains('cmp-scroll-view'))|| elemCSS.overflowX == 'auto' || elemCSS.overflowX == 'scroll') || elem.clientHeight < elem.scrollHeight && (elemCSS.overflowY == 'auto' || elemCSS.overflowY == 'scroll')) {
         if (!elem.getBoundingClientRect || elem === document.body) return getWindowScrollingElement();
         if (gotSelf || includeSelf) return elem;
         gotSelf = true;
@@ -2571,12 +2574,20 @@ var autoScroll = throttle(function (evt, options, rootEl, isFallback) {
       elCSS = css(el),
       scrollPosX = el.scrollLeft,
       scrollPosY = el.scrollTop;
+
+    if (el.classList.contains('cmp-scroll-view')){
+      var m = new DOMMatrix(el.children[0].style.transform);
+      if (m.m41 !== 0){
+        scrollPosX = m.m41
+      }
+    }
+
     if (el === winScroller) {
-      canScrollX = width < scrollWidth && (elCSS.overflowX === 'auto' || elCSS.overflowX === 'scroll' || elCSS.overflowX === 'visible');
-      canScrollY = height < scrollHeight && (elCSS.overflowY === 'auto' || elCSS.overflowY === 'scroll' || elCSS.overflowY === 'visible');
+      canScrollX = width < scrollWidth && (el.classList.contains('cmp-scroll-view') || elCSS.overflowX === 'auto' || elCSS.overflowX === 'scroll' || elCSS.overflowX === 'visible');
+      canScrollY = height < scrollHeight && (el.classList.contains('cmp-scroll-view') || elCSS.overflowY === 'auto' || elCSS.overflowY === 'scroll' || elCSS.overflowY === 'visible');
     } else {
-      canScrollX = width < scrollWidth && (elCSS.overflowX === 'auto' || elCSS.overflowX === 'scroll');
-      canScrollY = height < scrollHeight && (elCSS.overflowY === 'auto' || elCSS.overflowY === 'scroll');
+      canScrollX = width < scrollWidth && (el.classList.contains('cmp-scroll-view') || elCSS.overflowX === 'auto' || elCSS.overflowX === 'scroll');
+      canScrollY = height < scrollHeight && (el.classList.contains('cmp-scroll-view') || elCSS.overflowY === 'auto' || elCSS.overflowY === 'scroll');
     }
     var vx = canScrollX && (Math.abs(right - x) <= sens && scrollPosX + width < scrollWidth) - (Math.abs(left - x) <= sens && !!scrollPosX);
     var vy = canScrollY && (Math.abs(bottom - y) <= sens && scrollPosY + height < scrollHeight) - (Math.abs(top - y) <= sens && !!scrollPosY);
